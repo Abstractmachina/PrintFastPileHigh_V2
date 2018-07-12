@@ -60,9 +60,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DifferenceComponent.cs" />
-    <Compile Include="MeshFieldComponent.cs" />
-    <Compile Include="UnionComponent.cs" />
+    <Compile Include="Field\BlendFieldsComponent.cs" />
+    <Compile Include="Operations\DifferenceComponent.cs" />
+    <Compile Include="Display\FieldDisplayComponent.cs" />
+    <Compile Include="Operations\IntersectionComponent.cs" />
+    <Compile Include="Display\IsoContourComponent.cs" />
+    <Compile Include="Field\MeshFieldComponent.cs" />
+    <Compile Include="Operations\UnionComponent.cs" />
     <Compile Include="CyborgInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
