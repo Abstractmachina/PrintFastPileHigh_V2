@@ -12,6 +12,7 @@ namespace Cyborg
 {
     public class BlendFieldsComponent : GH_Component
     {
+
         /// <summary>
         /// Initializes a new instance of the BlendFieldsComponent class.
         /// </summary>
@@ -38,7 +39,7 @@ namespace Cyborg
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddNumberParameter("Blend Values", "V", "blend values as tree. Needs to be passed back into fields.", GH_ParamAccess.tree);
+            //pManager.AddNumberParameter("Blend Values", "V", "blend values as tree. Needs to be passed back into fields.", GH_ParamAccess.tree);
             pManager.AddGenericParameter("Blend Fields", "F", "blend fields.", GH_ParamAccess.list);
         }
 
@@ -48,8 +49,8 @@ namespace Cyborg
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            
             Mesh mesh = null;
-            var hem = mesh.ToHeMesh();
             IField3d<double> f0 = null;
             IField3d<double> f1 = null;
             List<double> t = new List<double>();
@@ -59,45 +60,41 @@ namespace Cyborg
             if (!DA.GetData(2, ref f1)) return;
             if (!DA.GetDataList(3, t)) return;
 
-            GH_Structure<GH_Number> blends = new GH_Structure<GH_Number>();
-            List<FuncField3d<double>> blendfields = new List<FuncField3d<double>>();
+            var hem = mesh.ToHeMesh();
+
+            //List<FuncField3d<double>> blendfields = new List<FuncField3d<double>>();
+            List<MeshField3d<double>> blendfields = new List<MeshField3d<double>>();
 
             //DataTree<double> blends = new DataTree<double>();
             for (int j = 0; j < t.Count; j++)
             {
 
                 GH_Path pth = new GH_Path(j);
-                List<GH_Number> currentBlend = new List<GH_Number>();
+                List<double> currentBlend = new List<double>();
 
 
                 foreach (Point3d p in mesh.Vertices)
                 {
                     double val = SpatialSlur.SlurCore.SlurMath.Lerp(f0.ValueAt(p), f1.ValueAt(p), t[j]);
-                    currentBlend.Add(new GH_Number(val));
+                    currentBlend.Add(val);
                 }
 
-                //blends.AppendRange( currentBlend, pth);
-                blends.AppendRange(currentBlend, pth);
+                //blends.AppendRange(currentBlend, pth);
 
                 var field = MeshField3d.Double.Create(hem);
-                List<double> l = new List<double>();
-                foreach (GH_Number num in currentBlend)
-                {
-                    double n = 0;
-                    num.CastTo(out n);
-                    l.Add(n);
-                }
-                field.Set(l);
-                
-                blendfields.Add(FuncField3d.Create(i => field.ValueAt(i)));
-                //blendfields.Add(FuncField3d.Create();
 
+                field.Set(currentBlend);
+                blendfields.Add(field);
+                //blendfields.Add(FuncField3d.Create(i => field.ValueAt(i)));
             }
 
-            
+           
+            DA.SetDataList(0, blendfields);
+        }
 
-            DA.SetDataTree(0, blends);
-            DA.SetDataList(1, blendfields);
+        public override GH_Exposure Exposure
+        {
+            get { return GH_Exposure.secondary; }
         }
 
         /// <summary>

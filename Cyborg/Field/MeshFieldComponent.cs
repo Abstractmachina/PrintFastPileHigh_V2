@@ -159,6 +159,11 @@ namespace Cyborg
             return interval;
         }
 
+        public override GH_Exposure Exposure
+        {
+            get { return GH_Exposure.primary; }
+        }
+
         /// <summary>
         /// Provides an Icon for the component.
         /// </summary>

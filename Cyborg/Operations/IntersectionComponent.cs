@@ -52,6 +52,10 @@ namespace Cyborg
             DA.SetData(0, FuncField3d.CreateIntersection(f0, f1));
         }
 
+        public override GH_Exposure Exposure
+        {
+            get { return GH_Exposure.primary; }
+        }
         /// <summary>
         /// Provides an Icon for the component.
         /// </summary>

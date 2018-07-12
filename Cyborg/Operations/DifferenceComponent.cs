@@ -49,7 +49,12 @@ namespace Cyborg
             if (!DA.GetData(1, ref f1)) return;
 
 
-            DA.SetData(0, FuncField3d.CreateDifference(f0, f1));
+            DA.SetData(0, FuncField3d.CreateDifference(f1, f0));
+        }
+
+        public override GH_Exposure Exposure
+        {
+            get { return GH_Exposure.primary; }
         }
 
         /// <summary>

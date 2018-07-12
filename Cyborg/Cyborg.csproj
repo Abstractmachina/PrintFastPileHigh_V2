@@ -68,6 +68,7 @@
     <Compile Include="Field\MeshFieldComponent.cs" />
     <Compile Include="Operations\UnionComponent.cs" />
     <Compile Include="CyborgInfo.cs" />
+    <Compile Include="Operations\PlaneTrimComponent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
