@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using Cyborg.Properties;
+
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
@@ -12,7 +14,7 @@ namespace Cyborg
 {
     public class MeshFieldComponent : GH_Component
     {
-        List<string> debugLog = new List<string>();
+        
 
         /// <summary>
         /// Initializes a new instance of the MeshFieldComponent class.
@@ -40,9 +42,9 @@ namespace Cyborg
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            //pManager.AddTextParameter("Debug Log", "debug", "..", GH_ParamAccess.list);
+            
             pManager.AddGenericParameter("Mesh Field", "F", "Mesh Field Result", GH_ParamAccess.item);
-            //pManager.AddPointParameter("test points", "pts", ".", GH_ParamAccess.list);
+            
         }
 
         /// <summary>
@@ -51,7 +53,7 @@ namespace Cyborg
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            debugLog.Clear();
+            
 
             Mesh m = null;
             List<GH_GeometricGooWrapper> obj = new List<GH_GeometricGooWrapper>();
@@ -90,32 +92,30 @@ namespace Cyborg
                 }
             }
 
-            debugLog.Add("number of pts: " + pts.Count.ToString());
-            debugLog.Add("number of crvs: " + crvs.Count.ToString());
-
-
-
             //if curves are inputted, convert them into points
             ConvertCrvsToPts(crvs, ref pts);
-            debugLog.Add("number of pts: " + pts.Count.ToString());
+            
 
             //get vector of each field pt to the closest point. 
             List<double> val = GetDistanceField(m, pts);
 
             Interval interval = GetInterval(val);
+            //
 
             for (int i = 0; i < val.Count; i++)
             {
                 val[i] = (SpatialSlur.SlurCore.SlurMath.Remap(val[i], interval.T0, interval.T1, -1, 1)) - iso;
             }
 
+            //
+
             field.Set(val);
 
-            //DA.SetDataList(0, debugLog);
+            
             DA.SetData(0, FuncField3d.Create(i => field.ValueAt(i)));
-            //DA.SetDataList(2, pts);
-
         }
+
+
 
         private static void ConvertCrvsToPts( List<Curve> crvs, ref List<Point3d> pts)
         {
@@ -172,8 +172,9 @@ namespace Cyborg
             get
             {
                 //You can add image files to your project resources and access them like this:
-                // return Resources.IconForThisComponent;
-                return null;
+                //return Resources.IconForThisComponent;
+                return Resources.MField;
+                //return null;
             }
         }
 

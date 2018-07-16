@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using Cyborg.Properties;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 using SpatialSlur.SlurField;
@@ -89,7 +89,7 @@ namespace Cyborg
             get
             {
                 //You can add image files to your project resources and access them like this:
-                // return Resources.IconForThisComponent;
+                return Resources.PTrim;
                 return null;
             }
         }

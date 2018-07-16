@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using Cyborg.Properties;
 using Grasshopper.Kernel;
 
 namespace Cyborg
@@ -18,7 +19,7 @@ namespace Cyborg
             get
             {
                 //Return a 24x24 pixel bitmap to represent this GHA library.
-                return null;
+                return Resources.cyborg;
             }
         }
         public override string Description
@@ -26,7 +27,7 @@ namespace Cyborg
             get
             {
                 //Return a short string describing the purpose of this GHA library.
-                return "";
+                return "FRep modelling with fields.";
             }
         }
         public override Guid Id
