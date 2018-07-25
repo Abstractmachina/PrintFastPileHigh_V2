@@ -60,6 +60,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Display\IsoContourMultiComponent.cs" />
+    <Compile Include="Field\BlendFieldsComponent-multi.cs" />
     <Compile Include="Field\BlendFieldsComponent.cs" />
     <Compile Include="Operations\DifferenceComponent.cs" />
     <Compile Include="Display\FieldDisplayComponent.cs" />

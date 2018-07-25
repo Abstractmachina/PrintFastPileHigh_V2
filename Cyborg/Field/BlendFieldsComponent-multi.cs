@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Threading.Tasks;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
@@ -10,15 +10,15 @@ using SpatialSlur.SlurRhino;
 
 namespace Cyborg
 {
-    public class BlendFieldsComponent : GH_Component
+    public class BlendFieldsComponentMulti : GH_Component
     {
 
         /// <summary>
         /// Initializes a new instance of the BlendFieldsComponent class.
         /// </summary>
-        public BlendFieldsComponent()
-          : base("Blend Fields", "FBlend",
-              "Blend two fields at specified parameters t",
+        public BlendFieldsComponentMulti()
+          : base("Blend Fields Multi", "FBlendMult",
+              "Blend two fields at specified parameters t - multi threaded",
               "Cyborg", "Field")
         {
         }
@@ -49,7 +49,7 @@ namespace Cyborg
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            
+
             Mesh mesh = null;
             IField3d<double> f0 = null;
             IField3d<double> f1 = null;
@@ -67,24 +67,53 @@ namespace Cyborg
             for (int j = 0; j < t.Count; j++)
             {
 
-                GH_Path pth = new GH_Path(j);
-                List<double> currentBlend = new List<double>();
+                // GH_Path pth = new GH_Path(j);
+                //List<double> currentBlend = new List<double>();
 
+                //double[] results = new double[mesh.Vertices.Count];
 
+                var results = new System.Collections.Concurrent.ConcurrentDictionary<Point3d, double>(Environment.ProcessorCount, mesh.Vertices.Count);
+                foreach (Point3d p in mesh.Vertices) results[p] = 0d; //initialise dictionary
+
+                Parallel.ForEach(mesh.Vertices, p =>
+                    {
+                        double val = SpatialSlur.SlurCore.SlurMath.Lerp(f0.ValueAt(p), f1.ValueAt(p), t[j]);
+                        results[p] = val;
+                    }
+                    );
+
+                /*
                 foreach (Point3d p in mesh.Vertices)
                 {
                     double val = SpatialSlur.SlurCore.SlurMath.Lerp(f0.ValueAt(p), f1.ValueAt(p), t[j]);
                     currentBlend.Add(val);
                 }
+                */
 
                 var field = MeshField3d.Double.Create(hem);
 
-                field.Set(currentBlend);
+                
+                field.Set(results.Values);
                 blendfields.Add(field);
+
             }
 
-           
+
             DA.SetDataList(0, blendfields);
+
+            /*
+            var results = new System.Collections.Concurrent.ConcurrentDictionary<Point3d, bool>(Environment.ProcessorCount, pts.Count);
+            foreach (Point3d pt in pts) results[pt] = false; //initialise dictionary
+
+            Parallel.ForEach(pt, pts=>
+            {
+                 bool isIntersecting = CheckIntersection(pt, shape);
+                results[pt] = isIntersecting; //save your output here
+            }
+            );
+
+            DA.SetDataList(0, results.Values); //send back to GH output
+            */
         }
 
         public override GH_Exposure Exposure
@@ -110,7 +139,8 @@ namespace Cyborg
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("6aba6ae9-faf2-47fc-9869-d34edf2f214c"); }
+            get { return new Guid("6aba6ae9-faf2-47fc-9869-d34edf2f214d"); }
         }
     }
 }
+
