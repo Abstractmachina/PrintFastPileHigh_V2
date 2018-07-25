@@ -61,13 +61,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Display\IsoContourMultiComponent.cs" />
-    <Compile Include="Field\BlendFieldsComponent-multi.cs" />
+    <Compile Include="Field\BlendFieldsMultiComponent.cs" />
     <Compile Include="Field\BlendFieldsComponent.cs" />
     <Compile Include="Operations\DifferenceComponent.cs" />
     <Compile Include="Display\FieldDisplayComponent.cs" />
     <Compile Include="Operations\IntersectionComponent.cs" />
     <Compile Include="Display\IsoContourComponent.cs" />
     <Compile Include="Field\MeshFieldComponent.cs" />
+    <Compile Include="Operations\PlaneTrimMultiComponent.cs" />
     <Compile Include="Operations\UnionComponent.cs" />
     <Compile Include="CyborgInfo.cs" />
     <Compile Include="Operations\PlaneTrimComponent.cs" />

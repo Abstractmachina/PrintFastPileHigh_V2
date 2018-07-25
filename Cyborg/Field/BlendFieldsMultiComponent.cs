@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Collections.Concurrent;
+using Cyborg.Properties;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
+
+using SpatialSlur.SlurCore;
 using SpatialSlur.SlurField;
 using SpatialSlur.SlurRhino;
 
@@ -13,11 +17,13 @@ namespace Cyborg
     public class BlendFieldsComponentMulti : GH_Component
     {
 
+        List<string> debugLog = new List<string>();
+
         /// <summary>
         /// Initializes a new instance of the BlendFieldsComponent class.
         /// </summary>
         public BlendFieldsComponentMulti()
-          : base("Blend Fields Multi", "FBlendMult",
+          : base("Blend Fields Multi-threaded", "FBlendMult",
               "Blend two fields at specified parameters t - multi threaded",
               "Cyborg", "Field")
         {
@@ -39,7 +45,7 @@ namespace Cyborg
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            //pManager.AddNumberParameter("Blend Values", "V", "blend values as tree. Needs to be passed back into fields.", GH_ParamAccess.tree);
+            pManager.AddTextParameter("debug", "D", ".", GH_ParamAccess.list);
             pManager.AddGenericParameter("Blend Fields", "F", "blend fields.", GH_ParamAccess.list);
         }
 
@@ -66,54 +72,39 @@ namespace Cyborg
 
             for (int j = 0; j < t.Count; j++)
             {
+                Point3d[] pts = mesh.Vertices.ToPoint3dArray();
+                double[] results = new double[pts.Length];
 
-                // GH_Path pth = new GH_Path(j);
-                //List<double> currentBlend = new List<double>();
-
-                //double[] results = new double[mesh.Vertices.Count];
-
-                var results = new System.Collections.Concurrent.ConcurrentDictionary<Point3d, double>(Environment.ProcessorCount, mesh.Vertices.Count);
-                foreach (Point3d p in mesh.Vertices) results[p] = 0d; //initialise dictionary
-
-                Parallel.ForEach(mesh.Vertices, p =>
-                    {
-                        double val = SpatialSlur.SlurCore.SlurMath.Lerp(f0.ValueAt(p), f1.ValueAt(p), t[j]);
-                        results[p] = val;
-                    }
-                    );
-
+                debugLog.Add(pts.Length.ToString());
                 /*
-                foreach (Point3d p in mesh.Vertices)
+                Parallel.ForEach(Partitioner.Create(0, pts.Length), range =>
                 {
-                    double val = SpatialSlur.SlurCore.SlurMath.Lerp(f0.ValueAt(p), f1.ValueAt(p), t[j]);
-                    currentBlend.Add(val);
-                }
+                    for (int i = range.Item1; i < range.Item2; i++)
+                        results[i] = SpatialSlur.SlurCore.SlurMath.Lerp(f0.ValueAt(pts[i]), f1.ValueAt(pts[i]), t[j]);
+                });
                 */
 
+                Parallel.For(0, pts.Length, i =>
+                {
+                    results[i] = SpatialSlur.SlurCore.SlurMath.Lerp(f0.ValueAt(pts[i]), f1.ValueAt(pts[i]), t[j]);
+                });
                 var field = MeshField3d.Double.Create(hem);
 
-                
-                field.Set(results.Values);
+                field.Set(results);
                 blendfields.Add(field);
 
+                /*
+               foreach (Point3d p in mesh.Vertices)
+               {
+                   double val = SpatialSlur.SlurCore.SlurMath.Lerp(f0.ValueAt(p), f1.ValueAt(p), t[j]);
+                   currentBlend.Add(val);
+               }
+               */
             }
 
+            DA.SetDataList(0, debugLog);
+            DA.SetDataList(1, blendfields);
 
-            DA.SetDataList(0, blendfields);
-
-            /*
-            var results = new System.Collections.Concurrent.ConcurrentDictionary<Point3d, bool>(Environment.ProcessorCount, pts.Count);
-            foreach (Point3d pt in pts) results[pt] = false; //initialise dictionary
-
-            Parallel.ForEach(pt, pts=>
-            {
-                 bool isIntersecting = CheckIntersection(pt, shape);
-                results[pt] = isIntersecting; //save your output here
-            }
-            );
-
-            DA.SetDataList(0, results.Values); //send back to GH output
-            */
         }
 
         public override GH_Exposure Exposure
@@ -130,7 +121,7 @@ namespace Cyborg
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return null;
+                return Resources.blendFields;
             }
         }
 
@@ -141,6 +132,23 @@ namespace Cyborg
         {
             get { return new Guid("6aba6ae9-faf2-47fc-9869-d34edf2f214d"); }
         }
+
+
+        /*
+        public void ParallelEvaluateExample<T>(IField3d<T> field, Vec3d[] points, T[] result, bool parallel)
+        {
+            if (parallel)
+                Parallel.ForEach(Partitioner.Create(0, points.Length), range => LoopBody(range.Item1, range.Item2));
+            else
+                LoopBody(0, points.Length);
+
+            void LoopBody(int from, int to)
+            {
+                for(int i = from; i < to; i++)
+                    result[i] = field.ValueAt(points[i]);
+            }
+        }
+        */
     }
 }
 

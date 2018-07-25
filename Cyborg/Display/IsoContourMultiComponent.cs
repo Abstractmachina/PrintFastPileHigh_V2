@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Cyborg.Properties;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 using SpatialSlur.SlurField;
@@ -52,7 +54,49 @@ namespace Cyborg
 
             var lines = new List<LineCurve>();
 
-            Parallel.For(0, mesh.Faces.Count, (i) =>
+            /*
+            Parallel.ForEach(Partitioner.Create(0, mesh.Faces.Count), range =>
+            {
+                for (int i = range.Item1; i < range.Item2; i++)
+                {
+                    Point3d p0 = mesh.Vertices[mesh.Faces[i].A];
+                    Point3d p1 = mesh.Vertices[mesh.Faces[i].B];
+                    Point3d p2 = mesh.Vertices[mesh.Faces[i].C];
+
+                    double t0 = f.ValueAt(mesh.Vertices[mesh.Faces[i].A]);
+                    double t1 = f.ValueAt(mesh.Vertices[mesh.Faces[i].B]);
+                    double t2 = f.ValueAt(mesh.Vertices[mesh.Faces[i].C]);
+
+                    int mask = 0;
+                    if (t0 >= iso) { mask |= 1; }
+                    if (t1 >= iso) { mask |= 2; }
+                    if (t2 >= iso) { mask |= 4; }
+
+                    switch (mask)
+                    {
+                        case 1:
+                            lines.Add(DrawLine(p0, p1, p2, Normalize(t0, t1, iso), Normalize(t0, t2, iso)));
+                            break;
+                        case 2:
+                            lines.Add(DrawLine(p1, p2, p0, Normalize(t1, t2, iso), Normalize(t1, t0, iso)));
+                            break;
+                        case 3:
+                            lines.Add(DrawLine(p2, p0, p1, Normalize(t2, t0, iso), Normalize(t2, t1, iso)));
+                            break;
+                        case 4:
+                            lines.Add(DrawLine(p2, p0, p1, Normalize(t2, t0, iso), Normalize(t2, t1, iso)));
+                            break;
+                        case 5:
+                            lines.Add(DrawLine(p1, p2, p0, Normalize(t1, t2, iso), Normalize(t1, t0, iso)));
+                            break;
+                        case 6:
+                            lines.Add(DrawLine(p0, p1, p2, Normalize(t0, t1, iso), Normalize(t0, t2, iso)));
+                            break;
+                    }
+                }
+            });
+            */
+            Parallel.For(0, mesh.Faces.Count, i =>
             {
                 Point3d p0 = mesh.Vertices[mesh.Faces[i].A];
                 Point3d p1 = mesh.Vertices[mesh.Faces[i].B];
@@ -90,9 +134,6 @@ namespace Cyborg
                 }
             });
 
-
-           
-
             DA.SetDataList(0, Curve.JoinCurves(lines));
 
         }
@@ -125,7 +166,7 @@ namespace Cyborg
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
                 //return Resources.MField;
-                return null;
+                return Resources.isoContour;
             }
         }
 
