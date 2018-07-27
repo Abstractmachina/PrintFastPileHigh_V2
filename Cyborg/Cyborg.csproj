@@ -63,6 +63,7 @@
     <Compile Include="Display\IsoContourMultiComponent.cs" />
     <Compile Include="Field\BlendFieldsMultiComponent.cs" />
     <Compile Include="Field\BlendFieldsComponent.cs" />
+    <Compile Include="Field\AreaMeshFieldComponent.cs" />
     <Compile Include="Operations\DifferenceComponent.cs" />
     <Compile Include="Display\FieldDisplayComponent.cs" />
     <Compile Include="Operations\IntersectionComponent.cs" />
@@ -101,6 +102,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\isoContour.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\AMField.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

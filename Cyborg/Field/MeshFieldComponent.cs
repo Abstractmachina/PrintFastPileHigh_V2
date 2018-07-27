@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Linq;
+using System.Threading.Tasks;
 using Cyborg.Properties;
 
 using Grasshopper.Kernel;
@@ -34,6 +35,7 @@ namespace Cyborg
             pManager.AddMeshParameter("Base Mesh", "M", "Base mesh of the field.", GH_ParamAccess.item);
             pManager.AddGeometryParameter("Drawing Input", "IN", "points or curves that describe field.", GH_ParamAccess.list);
             pManager.AddNumberParameter("Iso Value", "IV", "Zero Iso Value Adjustment", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Curve Resolution", "CR", "Curve Resolution Adjustment (optional).", GH_ParamAccess.item, 1d);
             
         }
 
@@ -58,6 +60,7 @@ namespace Cyborg
             Mesh m = null;
             List<GH_GeometricGooWrapper> obj = new List<GH_GeometricGooWrapper>();
             double iso = 0d;
+            double res = 0d;
 
             List<Point3d> pts = new List<Point3d>();
             List<Curve> crvs = new List<Curve>();
@@ -66,6 +69,7 @@ namespace Cyborg
             if (!DA.GetData(0, ref m)) return;
             if (!DA.GetDataList<GH_GeometricGooWrapper>(1, obj)) return;
             if (!DA.GetData(2, ref iso)) return;
+            if (!DA.GetData(3, ref res)) return;
 
             var hem = m.ToHeMesh();
             var field = MeshField3d.Double.Create(hem);
@@ -93,7 +97,7 @@ namespace Cyborg
             }
 
             //if curves are inputted, convert them into points
-            ConvertCrvsToPts(crvs, ref pts);
+            ConvertCrvsToPts(crvs, ref pts, res);
             
 
             //get vector of each field pt to the closest point. 
@@ -117,14 +121,14 @@ namespace Cyborg
 
 
 
-        private static void ConvertCrvsToPts( List<Curve> crvs, ref List<Point3d> pts)
+        private static void ConvertCrvsToPts( List<Curve> crvs, ref List<Point3d> pts, double res)
         {
             if (crvs.Count == 0) return;
             else 
             {
                 foreach (Curve c in crvs)
                 {
-                    double[] t = c.DivideByLength(1, true);
+                    double[] t = c.DivideByLength(res, true);
                     foreach (double tt in t)
                     {
                         pts.Add(c.PointAt(tt));
@@ -135,20 +139,33 @@ namespace Cyborg
 
         private List<double> GetDistanceField(Mesh m, List<Point3d> pts)
         {
-            List<double> val = new List<double>();
+            
             Point3d[] verts = m.Vertices.ToPoint3dArray();
             PointCloud ptsc = new PointCloud(pts);
+            double[] vals = new double[verts.Length];
 
 
             //calc distance field
+            //List<double> val = new List<double>();
+            /*
             foreach (Point3d v in verts)
             {
                 int i = ptsc.ClosestPoint(v);
                 double dist = (v - ptsc[i].Location).Length;
                 val.Add(dist);
             }
+            */
 
-            return val;
+            Parallel.For(0, verts.Length, i =>
+            {
+                Point3d v = verts[i];
+                int id = ptsc.ClosestPoint(v);
+                double dist = (v - ptsc[id].Location).Length;
+                vals[i] = dist;
+            });
+
+            List<double> casted = vals.ToList<double>();
+            return casted;
         }
 
         private Interval GetInterval(List<double> val)
@@ -171,10 +188,7 @@ namespace Cyborg
         {
             get
             {
-                //You can add image files to your project resources and access them like this:
-                //return Resources.IconForThisComponent;
                 return Resources.MField;
-                //return null;
             }
         }
 

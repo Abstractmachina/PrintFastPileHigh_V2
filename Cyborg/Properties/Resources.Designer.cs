@@ -63,6 +63,16 @@ namespace Cyborg.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap AMField {
+            get {
+                object obj = ResourceManager.GetObject("AMField", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap blendFields {
             get {
                 object obj = ResourceManager.GetObject("blendFields", resourceCulture);
