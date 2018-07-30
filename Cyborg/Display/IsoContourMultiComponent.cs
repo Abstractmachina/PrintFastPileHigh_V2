@@ -28,6 +28,8 @@ namespace Cyborg
         {
             pManager.AddMeshParameter("Mesh", "M", "Base mesh.", GH_ParamAccess.item);
             pManager.AddGenericParameter("Field", "F", "Field.", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Tolerance", "T", "Weld Tolerance.", GH_ParamAccess.item, 1d);
+            pManager.AddNumberParameter("Iso Value", "I", "Iso at which to draw curve.", GH_ParamAccess.item, 0d);
         }
 
         /// <summary>
@@ -44,58 +46,18 @@ namespace Cyborg
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            double tolerance = 1d;
             Mesh mesh = null;
             IField3d<double> f = null;
+            double iso = 0d;
 
             if (!DA.GetData(0, ref mesh)) return;
             if (!DA.GetData(1, ref f)) return;
-
-            double iso = 0;
+            if (!DA.GetData(2, ref tolerance)) return;
+            if (!DA.GetData(3, ref iso)) return;
 
             var lines = new List<LineCurve>();
 
-            /*
-            Parallel.ForEach(Partitioner.Create(0, mesh.Faces.Count), range =>
-            {
-                for (int i = range.Item1; i < range.Item2; i++)
-                {
-                    Point3d p0 = mesh.Vertices[mesh.Faces[i].A];
-                    Point3d p1 = mesh.Vertices[mesh.Faces[i].B];
-                    Point3d p2 = mesh.Vertices[mesh.Faces[i].C];
-
-                    double t0 = f.ValueAt(mesh.Vertices[mesh.Faces[i].A]);
-                    double t1 = f.ValueAt(mesh.Vertices[mesh.Faces[i].B]);
-                    double t2 = f.ValueAt(mesh.Vertices[mesh.Faces[i].C]);
-
-                    int mask = 0;
-                    if (t0 >= iso) { mask |= 1; }
-                    if (t1 >= iso) { mask |= 2; }
-                    if (t2 >= iso) { mask |= 4; }
-
-                    switch (mask)
-                    {
-                        case 1:
-                            lines.Add(DrawLine(p0, p1, p2, Normalize(t0, t1, iso), Normalize(t0, t2, iso)));
-                            break;
-                        case 2:
-                            lines.Add(DrawLine(p1, p2, p0, Normalize(t1, t2, iso), Normalize(t1, t0, iso)));
-                            break;
-                        case 3:
-                            lines.Add(DrawLine(p2, p0, p1, Normalize(t2, t0, iso), Normalize(t2, t1, iso)));
-                            break;
-                        case 4:
-                            lines.Add(DrawLine(p2, p0, p1, Normalize(t2, t0, iso), Normalize(t2, t1, iso)));
-                            break;
-                        case 5:
-                            lines.Add(DrawLine(p1, p2, p0, Normalize(t1, t2, iso), Normalize(t1, t0, iso)));
-                            break;
-                        case 6:
-                            lines.Add(DrawLine(p0, p1, p2, Normalize(t0, t1, iso), Normalize(t0, t2, iso)));
-                            break;
-                    }
-                }
-            });
-            */
             Parallel.For(0, mesh.Faces.Count, i =>
             {
                 Point3d p0 = mesh.Vertices[mesh.Faces[i].A];
@@ -134,7 +96,7 @@ namespace Cyborg
                 }
             });
 
-            DA.SetDataList(0, Curve.JoinCurves(lines));
+            DA.SetDataList(0, Curve.JoinCurves(lines, tolerance));
 
         }
 

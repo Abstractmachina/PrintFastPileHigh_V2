@@ -60,7 +60,7 @@ namespace Cyborg.Field
             debug.Add("DEBUG");
             Mesh m = null;
             double iso = 0d;
-            double tolerance = 0d;
+            double tolerance = 1d;
 
             List<Curve> crvs = new List<Curve>();
 
@@ -69,48 +69,13 @@ namespace Cyborg.Field
             if (!DA.GetData(2, ref iso)) return;
             if (!DA.GetData(3, ref tolerance)) return;
 
+            iso = Math.Abs(iso);
 
             Point3d[] pts = m.Vertices.ToPoint3dArray();
-            double[] vals = new double[pts.Length];
+            
+            double[] vals = CalcField(crvs, pts);
 
-            double max = 0d;
-            Parallel.For(0, pts.Length, i =>
-            {
-                
-                
-                bool inside = false;
-                int count = 0;
-                while (inside == false && count < crvs.Count)
-                {
-                    Curve c = crvs[count];
-                    Point3d p = pts[i];
-                    if (c.Contains(p) == PointContainment.Inside)
-                    {
-                        vals[i] = -1d;
-                        inside = true;
-                        
-                    }
-                    else
-                    {
-                        double dist = GetDistanceToCrv(c, p);
-                        if (dist <= tolerance) vals[i] = 0;
-                        else
-                        {
-
-                            vals[i] = dist;
-                            max = FindMax(max, dist);
-                        }
-                    }
-                    count++;
-                }
-            });
-
-            for (int i = 0; i < vals.Length; i++)
-            {
-                if (vals[i] != 0 && vals[i] != -1d)
-                vals[i] = (SpatialSlur.SlurCore.SlurMath.Remap(vals[i], 0, max, 0, 1));
-            }
-
+            vals = RemapField(vals);
 
             var hem = m.ToHeMesh();
             var field = MeshField3d.Double.Create(hem);
@@ -120,10 +85,73 @@ namespace Cyborg.Field
             DA.SetDataList(1, debug);
         }
 
+        /// <summary>
+        /// Calculate field values which can be mapped onto input mesh.
+        /// </summary>
+        /// <param name="crvs">Input boundary curves.</param>
+        /// <param name="pts">mesh vertices.</param>
+        /// <returns></returns>
+        private double[] CalcField(List<Curve> crvs, Point3d[] pts)
+        {
+            double[] vals = new double[pts.Length];
+            Parallel.For(0, pts.Length, i =>
+            {
+                Point3d p = pts[i];
+                bool inside = false;
+                int count = 0;
+                double closestDist = 1000000d;
+
+                while (inside == false && count < crvs.Count)
+                {
+                    Curve c = crvs[count];
+
+                    double dist = GetDistanceToCrv(c, p);
+
+                    if (c.Contains(p) == PointContainment.Inside)
+                    {
+                        vals[i] = dist * -1;
+                        inside = true;
+
+                    }
+                    else
+                    {
+                        closestDist = FindMin(closestDist, dist);
+                    }
+                    count++;
+                }
+
+                if (vals[i] >= 0) vals[i] = closestDist;
+            });
+
+            return vals;
+        }
+
+        private double[] RemapField(double[] vals)
+        {
+            double[] newvals = vals;
+            double min = vals.Min();
+            double max = vals.Max();
+
+            for (int i = 0; i < vals.Length; i++)
+            {
+                if (vals[i] > 0) newvals[i] = (SpatialSlur.SlurCore.SlurMath.Remap(vals[i], 0, max, 0, 1));
+                else newvals[i] = (SpatialSlur.SlurCore.SlurMath.Remap(vals[i], min, 0, -1, 0));
+            }
+
+            return newvals;
+        }
+
         private double FindMax(double a, double b)
         {
             if (a > b) return a;
             if (a < b) return b;
+            else return a;
+        }
+
+        private double FindMin(double a, double b)
+        {
+            if (a < b) return a;
+            if (a > b) return b;
             else return a;
         }
 
