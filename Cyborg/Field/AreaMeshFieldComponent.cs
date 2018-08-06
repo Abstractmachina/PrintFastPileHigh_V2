@@ -16,9 +16,8 @@ namespace Cyborg.Field
     public class AreaMeshFieldComponent : GH_Component
     {
         List<string> debug = new List<string>();
-        /// <summary>
-        /// Initializes a new instance of the MeshFieldComponent class.
-        /// </summary>
+
+
         public AreaMeshFieldComponent()
           : base("Area Mesh Field", "AMField",
               "Create a field from closed boundary curves on a base mesh.",
@@ -26,9 +25,7 @@ namespace Cyborg.Field
         {
         }
 
-        /// <summary>
-        /// Registers all the input parameters for this component.
-        /// </summary>
+
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddMeshParameter("Base Mesh", "M", "Base mesh of the field.", GH_ParamAccess.item);
@@ -39,9 +36,7 @@ namespace Cyborg.Field
 
         }
 
-        /// <summary>
-        /// Registers all the output parameters for this component.
-        /// </summary>
+
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
 
@@ -50,10 +45,7 @@ namespace Cyborg.Field
 
         }
 
-        /// <summary>
-        /// This is the method that actually does the work.
-        /// </summary>
-        /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
+
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
@@ -75,7 +67,7 @@ namespace Cyborg.Field
             
             double[] vals = CalcField(crvs, pts);
 
-            vals = RemapField(vals);
+            vals = Utility.ReparamField(vals);
 
             var hem = m.ToHeMesh();
             var field = MeshField3d.Double.Create(hem);
@@ -105,7 +97,7 @@ namespace Cyborg.Field
                 {
                     Curve c = crvs[count];
 
-                    double dist = GetDistanceToCrv(c, p);
+                    double dist = Utility.GetDistanceToCrv(c, p);
 
                     if (c.Contains(p) == PointContainment.Inside)
                     {
@@ -115,7 +107,7 @@ namespace Cyborg.Field
                     }
                     else
                     {
-                        closestDist = FindMin(closestDist, dist);
+                        closestDist = Utility.FindMin(closestDist, dist);
                     }
                     count++;
                 }
@@ -124,43 +116,6 @@ namespace Cyborg.Field
             });
 
             return vals;
-        }
-
-        private double[] RemapField(double[] vals)
-        {
-            double[] newvals = vals;
-            double min = vals.Min();
-            double max = vals.Max();
-
-            for (int i = 0; i < vals.Length; i++)
-            {
-                if (vals[i] > 0) newvals[i] = (SpatialSlur.SlurCore.SlurMath.Remap(vals[i], 0, max, 0, 1));
-                else newvals[i] = (SpatialSlur.SlurCore.SlurMath.Remap(vals[i], min, 0, -1, 0));
-            }
-
-            return newvals;
-        }
-
-        private double FindMax(double a, double b)
-        {
-            if (a > b) return a;
-            if (a < b) return b;
-            else return a;
-        }
-
-        private double FindMin(double a, double b)
-        {
-            if (a < b) return a;
-            if (a > b) return b;
-            else return a;
-        }
-
-        private double GetDistanceToCrv(Curve c, Point3d p)
-        {
-            double t = 0;
-            c.ClosestPoint(p, out t);
-            double dist = p.DistanceTo(c.PointAt(t));
-            return dist;
         }
 
         public override GH_Exposure Exposure
@@ -179,9 +134,6 @@ namespace Cyborg.Field
             }
         }
 
-        /// <summary>
-        /// Gets the unique ID for this component. Do not change this ID after release.
-        /// </summary>
         public override Guid ComponentGuid
         {
             get { return new Guid("6e148e97-94bc-4df0-a5fc-60c565add81d"); }

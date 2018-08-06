@@ -57,12 +57,9 @@ namespace Cyborg
             if (!DA.GetData(2, ref plane)) return;
             if (!DA.GetData(3, ref val)) return;
 
-            var hem = mesh.ToHeMesh();
-            var fn = MeshField3d.Double.Create(hem);
-
-            //List<double> vals = new List<double>();
             Point3d[] pts = mesh.Vertices.ToPoint3dArray();
             double[] vals = new double[pts.Length];
+
             Parallel.ForEach(Partitioner.Create(0, pts.Length), range =>
             {
                 for (int i = range.Item1; i < range.Item2; i++)
@@ -76,20 +73,7 @@ namespace Cyborg
                 }
             });
 
-            /*
-            foreach (Point3d p in mesh.Vertices)
-            {
-                Vector3d vec = plane.Origin - p;
-                double proj = vec * plane.Normal; //dot product
-
-                if (proj > 0) vals.Add(val);
-
-                else vals.Add(f.ValueAt(p));
-            }
-            */
-
-            fn.Set(vals);
-
+            MeshField3d<double> fn = Utility.CreateMeshField(mesh, vals);
 
             DA.SetData(0, fn);
 

@@ -76,34 +76,25 @@ namespace Cyborg
                 double[] results = new double[pts.Length];
 
                 debugLog.Add(pts.Length.ToString());
-                /*
-                Parallel.ForEach(Partitioner.Create(0, pts.Length), range =>
-                {
-                    for (int i = range.Item1; i < range.Item2; i++)
-                        results[i] = SpatialSlur.SlurCore.SlurMath.Lerp(f0.ValueAt(pts[i]), f1.ValueAt(pts[i]), t[j]);
-                });
-                */
 
                 Parallel.For(0, pts.Length, i =>
                 {
                     results[i] = SpatialSlur.SlurCore.SlurMath.Lerp(f0.ValueAt(pts[i]), f1.ValueAt(pts[i]), t[j]);
                 });
-                var field = MeshField3d.Double.Create(hem);
 
-                field.Set(results);
+                var field = Utility.CreateMeshField(mesh, results);
+
                 blendfields.Add(field);
 
-                /*
-               foreach (Point3d p in mesh.Vertices)
-               {
-                   double val = SpatialSlur.SlurCore.SlurMath.Lerp(f0.ValueAt(p), f1.ValueAt(p), t[j]);
-                   currentBlend.Add(val);
-               }
-               */
             }
 
             DA.SetDataList(0, debugLog);
             DA.SetDataList(1, blendfields);
+
+        }
+
+        private void test(Mesh m)
+        {
 
         }
 

@@ -33,8 +33,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="SpatialSlur">
-      <HintPath>Resources\SpatialSlur_DF18\SpatialSlur.dll</HintPath>
+    <Reference Include="SpatialSlur, Version=0.2.4.16444, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\AppData\Roaming\Grasshopper\Libraries\SpatialSlur\SpatialSlur.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -61,6 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Display\IsoContourMultiComponent.cs" />
+    <Compile Include="Utility.cs" />
     <Compile Include="Field\BlendFieldsMultiComponent.cs" />
     <Compile Include="Field\BlendFieldsComponent.cs" />
     <Compile Include="Field\AreaMeshFieldComponent.cs" />

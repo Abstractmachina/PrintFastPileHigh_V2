@@ -97,13 +97,12 @@ namespace Cyborg
             }
 
             //if curves are inputted, convert them into points
-            ConvertCrvsToPts(crvs, ref pts, res);
+            Utility.ConvertCrvsToPts(crvs, ref pts, res);
             
-
             //get vector of each field pt to the closest point. 
-            List<double> val = GetDistanceField(m, pts);
+            List<double> val = Utility.GetDistanceField(m, pts);
 
-            Interval interval = GetInterval(val);
+            Interval interval = Utility.GetInterval(val);
             //
 
             for (int i = 0; i < val.Count; i++)
@@ -111,70 +110,12 @@ namespace Cyborg
                 val[i] = (SpatialSlur.SlurCore.SlurMath.Remap(val[i], interval.T0, interval.T1, -1, 1)) - iso;
             }
 
-            //
 
             field.Set(val);
-
-            
             DA.SetData(0, FuncField3d.Create(i => field.ValueAt(i)));
         }
 
-
-
-        private static void ConvertCrvsToPts( List<Curve> crvs, ref List<Point3d> pts, double res)
-        {
-            if (crvs.Count == 0) return;
-            else 
-            {
-                foreach (Curve c in crvs)
-                {
-                    double[] t = c.DivideByLength(res, true);
-                    foreach (double tt in t)
-                    {
-                        pts.Add(c.PointAt(tt));
-                    }
-                }
-            }
-        }
-
-        private List<double> GetDistanceField(Mesh m, List<Point3d> pts)
-        {
-            
-            Point3d[] verts = m.Vertices.ToPoint3dArray();
-            PointCloud ptsc = new PointCloud(pts);
-            double[] vals = new double[verts.Length];
-
-
-            //calc distance field
-            //List<double> val = new List<double>();
-            /*
-            foreach (Point3d v in verts)
-            {
-                int i = ptsc.ClosestPoint(v);
-                double dist = (v - ptsc[i].Location).Length;
-                val.Add(dist);
-            }
-            */
-
-            Parallel.For(0, verts.Length, i =>
-            {
-                Point3d v = verts[i];
-                int id = ptsc.ClosestPoint(v);
-                double dist = (v - ptsc[id].Location).Length;
-                vals[i] = dist;
-            });
-
-            List<double> casted = vals.ToList<double>();
-            return casted;
-        }
-
-        private Interval GetInterval(List<double> val)
-        {
-            List<double> tempval = new List<double>(val);
-            tempval.Sort();
-            var interval = new Interval(tempval[0], tempval[tempval.Count - 1]);
-            return interval;
-        }
+        
 
         public override GH_Exposure Exposure
         {
@@ -186,10 +127,7 @@ namespace Cyborg
         /// </summary>
         protected override System.Drawing.Bitmap Icon
         {
-            get
-            {
-                return Resources.MField;
-            }
+            get{ return Resources.MField; }
         }
 
         /// <summary>

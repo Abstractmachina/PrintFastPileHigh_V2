@@ -11,9 +11,6 @@ namespace Cyborg
 {
     public class IsoContourMultiComponent : GH_Component
     {
-        /// <summary>
-        /// Initializes a new instance of the IsoContourComponent class.
-        /// </summary>
         public IsoContourMultiComponent()
           : base("Iso Contour Multithreaded", "IsoConMulti",
               "Draws Iso contour at 0.",
@@ -21,9 +18,6 @@ namespace Cyborg
         {
         }
 
-        /// <summary>
-        /// Registers all the input parameters for this component.
-        /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddMeshParameter("Mesh", "M", "Base mesh.", GH_ParamAccess.item);
@@ -32,9 +26,6 @@ namespace Cyborg
             pManager.AddNumberParameter("Iso Value", "I", "Iso at which to draw curve.", GH_ParamAccess.item, 0d);
         }
 
-        /// <summary>
-        /// Registers all the output parameters for this component.
-        /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddCurveParameter("Isocontour", "C", "Isocontour of field at 0.", GH_ParamAccess.list);
@@ -118,23 +109,17 @@ namespace Cyborg
             return (t - t0) / (t1 - t0);
         }
 
-        /// <summary>
-        /// Provides an Icon for the component.
-        /// </summary>
+
+
+
+
         protected override System.Drawing.Bitmap Icon
         {
             get
             {
-                //You can add image files to your project resources and access them like this:
-                // return Resources.IconForThisComponent;
-                
                 return Resources.isoContour;
             }
         }
-
-        /// <summary>
-        /// Gets the unique ID for this component. Do not change this ID after release.
-        /// </summary>
         public override Guid ComponentGuid
         {
             get { return new Guid("fefe1427-c501-448b-89c2-5b4eb1e45499"); }
